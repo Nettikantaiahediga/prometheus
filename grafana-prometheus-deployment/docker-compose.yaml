@@ -1,0 +1,35 @@
+version: '3.8'
+networks:
+  monitoring:
+    driver: bridge
+volumes:
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+services:
+#### Prometheus ####
+  prometheus:
+    image: prom/prometheus:v2.37.9
+    container_name: prometheus
+    ports:
+      - 1783:9090
+    command:
+      - '--storage.tsdb.retention.time=2h'
+      - '--storage.tsdb.min-block-duration=2h'
+      - '--storage.tsdb.max-block-duration=2h'
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - ./data:/prometheus/data/
+    restart: unless-stopped
+
+#### AlertManager ####
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alert:/etc/alertmanager
+    restart: unless-stopped
